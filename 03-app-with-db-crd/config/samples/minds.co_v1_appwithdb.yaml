@@ -1,0 +1,9 @@
+apiVersion: minds.co.minds.co/v1
+kind: AppWithDb
+metadata:
+  labels:
+    app.kubernetes.io/name: 03-app-with-db-crd
+    app.kubernetes.io/managed-by: kustomize
+  name: appwithdb-sample
+spec:
+  image: pg-healthchecker

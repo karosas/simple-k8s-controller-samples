@@ -1,0 +1,4 @@
+## Append samples of your project ##
+resources:
+- minds.co_v1_appwithdb.yaml
+# +kubebuilder:scaffold:manifestskustomizesamples

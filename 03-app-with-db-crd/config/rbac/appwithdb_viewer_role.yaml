@@ -1,0 +1,29 @@
+# This rule is not used by the project 03-app-with-db-crd itself.
+# It is provided to allow the cluster admin to help manage permissions for users.
+#
+# Grants read-only access to minds.co.minds.co resources.
+# This role is intended for users who need visibility into these resources
+# without permissions to modify them. It is ideal for monitoring purposes and limited-access viewing.
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: 03-app-with-db-crd
+    app.kubernetes.io/managed-by: kustomize
+  name: appwithdb-viewer-role
+rules:
+- apiGroups:
+  - minds.co.minds.co
+  resources:
+  - appwithdbs
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - minds.co.minds.co
+  resources:
+  - appwithdbs/status
+  verbs:
+  - get
