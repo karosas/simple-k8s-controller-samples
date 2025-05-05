@@ -27,7 +27,7 @@ This readme contains minimal explanations on what they do and how they were gene
   - Basic controller that labels namespaces whose name has `dev-` prefix with `env: dev` label
   - Generated using:
     - `cd 02-namespace-labeler && kubebuilder init --domain minds.co --repo minds.co/repo`
-    - `kubebuilder create api --group "core" --kind "Namespace" --version "v1"`
+    - `kubebuilder create api --group "core" --kind "Namespace" --version "v1" --resource=false --controller=true`
     - Implemented `internal/controller/namespace_controller.go`
   - Test it:
     - `kubectl create ns dev-test`
@@ -40,7 +40,7 @@ This readme contains minimal explanations on what they do and how they were gene
   - There is `pg-healthchecker` helper project that will continuously log whether it can reach the database for demo purposes
   - Generated using:
     - `cd 03-app-with-db-crd && kubebuilder init --domain minds.co --repo minds.co/repo`
-    - `kubebuilder create api --group minds.co --version v1 --kind AppWithDb --namespaced=true`
+    - `kubebuilder create api --group minds.co --version v1 --kind AppWithDb --namespaced=true --resource=true --controller-true`
     - Implemented `internal/controller/namespace_controller.go`
   - Test it:
     - `kubectl create ns dev-test`

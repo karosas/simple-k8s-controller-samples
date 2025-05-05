@@ -44,7 +44,7 @@ func (r *AppWithDbReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	// 1. Reconcile postgres deployment
 
 	// 1.1. Define desired state
-	postgresDeployment, err := r.definePostgresDeployment(&crd)
+	desiredPostgresDeployment, err := r.definePostgresDeployment(&crd)
 	if err != nil {
 		logger.Error(err, "Failed to define postgres deployment")
 		return ctrl.Result{}, err
@@ -52,10 +52,10 @@ func (r *AppWithDbReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 
 	// 1.2. Try fetching existing deployment
 	existingPostgresDeployment := &appsv1.Deployment{}
-	if err := r.Get(ctx, types.NamespacedName{Namespace: postgresDeployment.Namespace, Name: postgresDeployment.Name}, existingPostgresDeployment); err != nil {
+	if err := r.Get(ctx, types.NamespacedName{Namespace: desiredPostgresDeployment.Namespace, Name: desiredPostgresDeployment.Name}, existingPostgresDeployment); err != nil {
 		// 1.2.1. If doesn't exist -> create it
 		if errors.IsNotFound(err) {
-			if err := r.Create(ctx, postgresDeployment); err != nil {
+			if err := r.Create(ctx, desiredPostgresDeployment); err != nil {
 				logger.Error(err, "Failed to create postgres deployment")
 				return ctrl.Result{}, err
 			}
@@ -69,16 +69,16 @@ func (r *AppWithDbReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 
 	// 2. Reconcile postgres service
 
-	postgresService, err := r.definePostgresService(&crd)
+	desiredPostgresService, err := r.definePostgresService(&crd)
 	if err != nil {
 		logger.Error(err, "Failed to define postgres service")
 		return ctrl.Result{}, err
 	}
 
 	existingPostgresService := &corev1.Service{}
-	if err := r.Get(ctx, types.NamespacedName{Namespace: postgresService.Namespace, Name: postgresService.Name}, existingPostgresService); err != nil {
+	if err := r.Get(ctx, types.NamespacedName{Namespace: desiredPostgresService.Namespace, Name: desiredPostgresService.Name}, existingPostgresService); err != nil {
 		if errors.IsNotFound(err) {
-			if err := r.Create(ctx, postgresService); err != nil {
+			if err := r.Create(ctx, desiredPostgresService); err != nil {
 				logger.Error(err, "Failed to create postgres service")
 				return ctrl.Result{}, err
 			}
@@ -90,16 +90,16 @@ func (r *AppWithDbReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	}
 
 	// 3. Reconcile app deployment
-	appDeployment, err := r.defineAppDeployment(&crd)
+	desiredAppDeployment, err := r.defineAppDeployment(&crd)
 	if err != nil {
 		logger.Error(err, "Failed to define app deployment")
 		return ctrl.Result{}, err
 	}
 
 	existingAppDeployment := &appsv1.Deployment{}
-	if err := r.Get(ctx, types.NamespacedName{Namespace: appDeployment.Namespace, Name: appDeployment.Name}, existingAppDeployment); err != nil {
+	if err := r.Get(ctx, types.NamespacedName{Namespace: desiredAppDeployment.Namespace, Name: desiredAppDeployment.Name}, existingAppDeployment); err != nil {
 		if errors.IsNotFound(err) {
-			if err := r.Create(ctx, appDeployment); err != nil {
+			if err := r.Create(ctx, desiredAppDeployment); err != nil {
 				logger.Error(err, "Failed to create app deployment")
 				return ctrl.Result{}, err
 			}
@@ -111,6 +111,15 @@ func (r *AppWithDbReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		return ctrl.Result{}, err
 	}
 
+	if existingAppDeployment.Spec.Template.Spec.Containers[0].Image != crd.Spec.Image {
+		logger.Info("Updating app deployment")
+		if err := r.Update(ctx, desiredAppDeployment); err != nil {
+			logger.Error(err, "Failed to update app deployment")
+			return ctrl.Result{}, err
+		}
+	}
+
+	logger.Info("Finished reconcile")
 	return ctrl.Result{}, nil
 }
 
